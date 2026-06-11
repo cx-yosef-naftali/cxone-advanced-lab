@@ -8,7 +8,7 @@ import java.sql;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,15 +22,18 @@ class Login
             String email = request.getParameter("email");
             String token = request.getParameter("password");
 
-            String sql = "select * from users where (email ='" + email +"' and password ='" + token + "')";
+            String sql = "select * from users where (email = ? and password = ?)";
 
             Connection connection = pool.getConnection();
-            Statement statement = connection.createStatement();
-            
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, email);
+            statement.setString(2, token);
+
             HttpSession session = request.getSession();
             String role = (String)session.getAttribute("role");
+            ResultSet result = null;
             if (role.equals(ADMIN)) {
-                ResultSet result = statement.executeQuery(sql);
+                result = statement.executeQuery();
                 statement.close();
                 connection.close();
             }
